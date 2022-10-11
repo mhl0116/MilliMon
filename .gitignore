@@ -1,0 +1,6 @@
+build/
+include/spdlog/
+logs/
+tmp/
+plots/
+
