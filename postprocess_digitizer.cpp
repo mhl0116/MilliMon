@@ -4,6 +4,7 @@
 #include "TTree.h"
 #include "TCanvas.h"
 #include "TH1.h"
+#include "TH2.h"
 #include "TLegend.h"
 
 #define SPDLOG_ACTIVE_LEVEL SPDLOG_LEVEL_INFO 
@@ -11,6 +12,24 @@
 #include "spdlog/spdlog.h"
 #include "spdlog/sinks/stdout_color_sinks.h" // or "../stdout_sinks.h" if no colors needed
 #include "spdlog/sinks/basic_file_sink.h"
+
+float DIGITIZER_THRESHOLD = 20; // 20 mV
+
+// turn digitizer channel (0-15) to row and column of bar detector
+// https://milliqanelog.asc.ohio-state.edu:8080/MilliQanRun3/220907_184455/channelMapping.pdf
+std::map<int, int> MAP_ROW{
+    {0, 1}, {1, 2}, {4, 3}, {5, 4},
+    {2, 1}, {3, 2}, {6, 3}, {7, 4},
+    {8, 1}, {9, 2}, {12, 3}, {13, 4},
+    {10, 1}, {11, 2}, {14, 3}, {15, 4}
+};
+
+std::map<int, int> MAP_COL{
+    {0, 1}, {1, 1}, {4, 1}, {5, 1},
+    {2, 2}, {3, 2}, {6, 2}, {7, 2},
+    {8, 3}, {9, 3}, {12, 3}, {13, 3},
+    {10, 4}, {11, 4}, {14, 4}, {15, 4}
+};
 
 std::pair<int, float> largest(float arr[], int n, bool debug=false)
 {
@@ -34,16 +53,50 @@ std::pair<int, float> largest(float arr[], int n, bool debug=false)
     return std::make_pair(imax, max);
 }
 
-//void postprocess_digitizer(TString filename) {
-void postprocess_digitizer(TString runnum, spdlog::logger logger) {
+void postprocess_triggerboard(TString runnum, TString subrunnum, spdlog::logger logger) {
 
     setTDRStyle();
 
+    SPDLOG_LOGGER_INFO(&logger, "Argument passed for this function is {}, {}", runnum, subrunnum);
+    TString filename = "/home/hmei/data/TriggerBoard_Run" + runnum + "." + subrunnum + ".root";
+    TString savename = "TriggerBoard_Run" + runnum + "_Subrun" + subrunnum + "_2supermodules_ln";
+
+    TFile * inputData = new TFile(filename);
+    TTree * events = (TTree*)inputData->Get("Events");
+    int nEvents = events->GetEntries();
+
+    ULong_t trigger = 0;
+    events->SetBranchAddress("trigger", &trigger);
+
+    TH1F* h_triggerbits;
+    h_triggerbits = new TH1F("h_triggerbits","",8,1,9);
+
+    for (int i = 0; i < nEvents; i++) {
+        events->GetEntry(i);
+        for (int j = 0; j < 8; j++) {
+            h_triggerbits->Fill( ((trigger >> j) == 1)? j+1 : 0 );
+        }
+    }
+
+    TCanvas* c = new TCanvas("c", "", 800, 800);
+    h_triggerbits->Draw();
+    h_triggerbits->GetXaxis()->SetTitle("Trigger bit");
+    c->SaveAs("./plots/" + savename + ".pdf");
+
+}
+
+//void postprocess_digitizer(TString filename) {
+void postprocess_digitizer(TString runnum, TString subrunnum, spdlog::logger logger) {
+
+    setTDRStyle();
+
+    TFile* fout = new TFile("outputs/output_run"+runnum+"_"+subrunnum+".root", "RECREATE");
+
     //TString filename = "/home/hmei/data/MilliQan_Run478.1_default.root";
     //TString savename = "Run478_2supermodules_ln";
-    SPDLOG_LOGGER_INFO(&logger, "Argument passed for this function is {}", runnum);
-    TString filename = "/home/hmei/data/MilliQan_Run" + runnum + ".1_default.root";
-    TString savename = "Run" + runnum + "_2supermodules_ln";
+    SPDLOG_LOGGER_INFO(&logger, "Argument passed for this function is {}, {}", runnum, subrunnum);
+    TString filename = "/home/hmei/data/MilliQan_Run" + runnum + "." + subrunnum + "_default.root";
+    TString savename = "Digitizer_Run" + runnum + "_Subrun" + subrunnum + "_2supermodules_ln";
 
     TFile * inputData = new TFile(filename);
     TTree * events = (TTree*)inputData->Get("Events");
@@ -68,6 +121,8 @@ void postprocess_digitizer(TString runnum, spdlog::logger logger) {
 
     std::map<int, int> colors_per_digitizer { {1, 2}, {2, 8}, {3, 4}, {4, 5}, {5,1} };
 
+    /*
+    SPDLOG_LOGGER_INFO(&logger, "Start process events with ROOT TTree->Draw()");
     for (int i = 0; i < 16; i++) {
         //c->cd(i+1);
         TPad *p = (TPad*)c->cd(i+1);
@@ -92,10 +147,42 @@ void postprocess_digitizer(TString runnum, spdlog::logger logger) {
         legend->Draw("same");
 
     }
-
+    
     //c->SaveAs("./plots/" + savename + ".png");
     c->SaveAs("./plots/" + savename + ".pdf");
+    c->Close();
+    */
 
+    TCanvas* c2 = new TCanvas("c2", "", 800, 800);
+    c2->SetGrid();
+
+    SPDLOG_LOGGER_INFO(&logger, "Start process events with event loop");
+    TH2F * h_channel_heatmap = new TH2F("h_channel_heatmap", "", 16, 1, 17, 16, 1, 17);
+    for(int i = 0; i < nEvents; i++){
+        events->GetEntry(i);
+        // looper over digitizers and channels <=> loop over bars, need a map
+        for (int j = 0; j < 5; j++){//loop over digitizers
+            for (int k = 0; k < 16; k++){
+                // if Vmax < threshold, do nothing, else fill the 2D heatmap
+                std::pair<int, float> max_pulse = largest(waveform[j][k], 1024, false);
+                if (max_pulse.second > DIGITIZER_THRESHOLD) {
+                    int row = MAP_ROW[k] + 4*j;
+                    int col = MAP_COL[k] + 4*j;
+                    h_channel_heatmap->Fill(row,col);
+                }
+            }
+        }
+
+    }
+
+
+    //fout->WriteObject(c, "plot_VMax");
+    //fout->WriteObject(h_channel_heatmap, "channel_heatmap");
+
+    h_channel_heatmap->Draw("COLZ");
+    h_channel_heatmap->Draw("TEXT same");
+    savename = "DigitizerHeatMap_Run" + runnum + "_Subrun" + subrunnum + "_2supermodules_ln";
+    c2->SaveAs("./plots/" + savename + ".pdf");
 
 }
 
@@ -119,39 +206,16 @@ int main(int argc, char **argv) {
         SPDLOG_LOGGER_INFO(&logger, "Argument {} for this program is: {}", i, argv[i]);
     }
 
-    if (argc != 2) {
-        std::cout << Form("Number of arguement is %d, expect 2", argc) << std::endl;
+    if (argc != 3) {
+        std::cout << Form("Number of arguement is %d, expect 3", argc) << std::endl;
         return 0;
     }
 
     TString runnum = argv[1];
-    postprocess_digitizer(runnum, logger);
+    TString subrunnum = argv[2];
+    postprocess_digitizer(runnum, subrunnum, logger);
+    postprocess_triggerboard(runnum, subrunnum, logger);
 
     return 0;
 }
 
-/*
-TCanvas* c2 = new TCanvas("c2", "", 1600, 1600);
-TH1F* h_channelmap_max0 = new TH1F("h_channelmap_max0","",17,1,18);
-for(int i = 0; i < nEvents; i++){
-    events->GetEntry(i);
-
-    TString TDC_local = Form("TDC for event %d", i+1);
-    for (int j = 0; j < 5; j++) {
-
-        TDC_local += Form(" %d", TDC[j][0]);
-
-        for (int k = 0; k < 16; k++) {
-            //pair<int, float> max_pulse = largest(waveform[0][0], 1024, true);
-            //if (j != 1 || k != 3) continue;
-            pair<int, float> max_pulse = largest(waveform[j][k], 1024, false);
-            cout << "max voltage for event " << i+1 << ", digitizer " << j+1 << ", channel " << k+1 << " is: " << max_pulse.second << " at position " << max_pulse.first << endl;
-            if (max_pulse.second == 0 && j == 2) h_channelmap_max0->Fill(k+1);
-        }
-    }
-    //cout << TDC_local << endl;
-
-}
-h_channelmap_max0->Draw("COLZ");
-c2->SaveAs("./plots/h_channelmap_max0.pdf");
-*/
