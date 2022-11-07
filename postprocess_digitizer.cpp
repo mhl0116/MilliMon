@@ -13,7 +13,7 @@
 #include "spdlog/sinks/stdout_color_sinks.h" // or "../stdout_sinks.h" if no colors needed
 #include "spdlog/sinks/basic_file_sink.h"
 
-float DIGITIZER_THRESHOLD = 20; // 20 mV
+float DIGITIZER_THRESHOLD = 15; // 15 mV
 
 // turn digitizer channel (0-15) to row and column of bar detector
 // https://milliqanelog.asc.ohio-state.edu:8080/MilliQanRun3/220907_184455/channelMapping.pdf
@@ -25,10 +25,10 @@ std::map<int, int> MAP_ROW{
 };
 
 std::map<int, int> MAP_COL{
-    {0, 1}, {1, 1}, {4, 1}, {5, 1},
-    {2, 2}, {3, 2}, {6, 2}, {7, 2},
-    {8, 3}, {9, 3}, {12, 3}, {13, 3},
-    {10, 4}, {11, 4}, {14, 4}, {15, 4}
+    {0, 4}, {1, 4}, {4, 4}, {5, 4},
+    {2, 3}, {3, 3}, {6, 3}, {7, 3},
+    {8, 2}, {9, 2}, {12, 2}, {13, 2},
+    {10, 1}, {11, 1}, {14, 1}, {15, 1}
 };
 
 std::pair<int, float> largest(float arr[], int n, bool debug=false)
@@ -58,7 +58,8 @@ void postprocess_triggerboard(TString runnum, TString subrunnum, spdlog::logger 
     setTDRStyle();
 
     SPDLOG_LOGGER_INFO(&logger, "Argument passed for this function is {}, {}", runnum, subrunnum);
-    TString filename = "/home/hmei/data/TriggerBoard_Run" + runnum + "." + subrunnum + ".root";
+    TString filename = "/home/milliqan/data/TriggerBoard_Run" + runnum + "." + subrunnum + ".root";
+    //TString filename = "/home/hmei/data/TriggerBoard_Run" + runnum + "." + subrunnum + ".root";
     TString savename = "TriggerBoard_Run" + runnum + "_Subrun" + subrunnum + "_2supermodules_ln";
 
     TFile * inputData = new TFile(filename);
@@ -95,7 +96,8 @@ void postprocess_digitizer(TString runnum, TString subrunnum, spdlog::logger log
     //TString filename = "/home/hmei/data/MilliQan_Run478.1_default.root";
     //TString savename = "Run478_2supermodules_ln";
     SPDLOG_LOGGER_INFO(&logger, "Argument passed for this function is {}, {}", runnum, subrunnum);
-    TString filename = "/home/hmei/data/MilliQan_Run" + runnum + "." + subrunnum + "_default.root";
+    //TString filename = "/home/hmei/data/MilliQan_Run" + runnum + "." + subrunnum + "_default.root";
+    TString filename = "/home/milliqan/data/MilliQan_Run" + runnum + "." + subrunnum + "_default.root";
     TString savename = "Digitizer_Run" + runnum + "_Subrun" + subrunnum + "_2supermodules_ln";
 
     TFile * inputData = new TFile(filename);
