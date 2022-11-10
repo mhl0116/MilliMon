@@ -145,7 +145,6 @@ class TriggerBoard():
         self.serialWrite(16)
         out = self.serialRead(64)
         output = []
-        print (len(output))
         if len(out) != 64:
             output.append(0)
             print("Error did not get 64 bytes")
