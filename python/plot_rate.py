@@ -1,7 +1,3 @@
-#open input file
-#read line by line time and trigger bit
-#plot and fit
-
 def fill_array(timestamp, triggerbit_decoded, l_time, l_count, index):
 
     if triggerbit_decoded[index] == '1':
@@ -14,6 +10,7 @@ def fill_array(timestamp, triggerbit_decoded, l_time, l_count, index):
             l_count[7-index].append( l_count[7-index][-1] + 1)
 
 fname_in = open("test_long.txt", "r")
+#fname_in = open("test.txt", "r")
 content_in = fname_in.readlines()
 
 l_time = [[] for _ in range(8)] 
@@ -26,7 +23,9 @@ scale = 16
 
 for i in range(len(content_in)):
     timestamp, triggerbit = content_in[i].strip('\n').split() 
-    triggerbit_decoded = bin(int(triggerbit[1:], scale))[2:].zfill(num_of_bits)
+    if triggerbit[0] == "x":
+        triggerbit = triggerbit[1:]
+    triggerbit_decoded = bin(int(triggerbit, scale))[2:].zfill(num_of_bits)
 
     for j in range(8):
         fill_array(timestamp, triggerbit_decoded, l_time, l_count, j)

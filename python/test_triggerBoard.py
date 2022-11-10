@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import array
 import datetime
 
-nEvents = 1000000
+nEvents = 1000
 
 tb = TriggerBoard()
 
@@ -47,7 +47,7 @@ num_of_bits = 8
 scale = 16
 #bin(int(my_hexdata, scale))[2:].zfill(num_of_bits)
 
-lasttime = 0
+#lasttime = 0
 
 fw = open("test.txt", "w")
 
@@ -66,16 +66,12 @@ while True:
         if trigger_bits != "00" and trigger_bits != 'x0':
             a_trigger.append(trigger_bits)
 
-    if len(a_time) > 0:
-        if lasttime != a_time[-1]:
-            #print (a_time[-1], a_trigger[-1])
-            lasttime = a_time[-1]
-            fw.write("{} {}\n".format(a_time[-1], a_trigger[-1]) )
+    if len(a_time) % 1000 == 0:
+        print ("{}: Acquired {} events already, last fired triggers {}.".format( datetime.datetime.now(),  len(a_time), a_trigger[-1] ))
 
-            if len(a_time) % 1000 == 0:
-                print ("{}: Acquired {} events already, last fired triggers {}.".format( datetime.datetime.now(),  len(a_time), a_trigger[-1] ))
-
-    if len(a_time) == nEvents:
+    if len(a_time) == nEvents and len(a_trigger) == nEvents:
+        for i in range(len(a_trigger)):
+            fw.write("{} {}\n".format(a_time[i], a_trigger[i]) )
         break
 
 '''
