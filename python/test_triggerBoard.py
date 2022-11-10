@@ -3,15 +3,21 @@ import time
 import numpy as np
 import matplotlib.pyplot as plt
 import array
+import datetime
+
+nEvents = 1000000
 
 tb = TriggerBoard()
 
 tb.trigger = 0b11111111
+#tb.trigger = 0b01000000
 tb.dead_time = 100
 tb.coincidence_time = 20
 tb.nLayerThreshold = 3 #requirement for firing the gtNHitLayers trigger bit (greater than or equal to)
-tb.nHitThreshold = 0 #requirement for firing the gtNHits trigger bit (greater than)
-tb.prescale = [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0] #fraction of events to pass for each trigger bit
+tb.nHitThreshold = 3 #requirement for firing the gtNHits trigger bit (greater than)
+tb.prescale = [1.0, 0.01, 1.0, 0.01, 0.01, 0.01, 0.1, 1.0] #fraction of events to pass for each trigger bit
+#tb.prescale = [1.0, 0.0001, 1.0, 0.001, 0.01, 0.01, 0.1, 1.0] #fraction of events to pass for each trigger bit
+#tb.prescale = [1.0]*8 #fraction of events to pass for each trigger bit
 
 tb.resetClock()
 tb.setTrigger() #set trigger
@@ -28,22 +34,31 @@ time.sleep(1)
 
 #print ("Firmware version is {}".format(tb.getFirmware()) )
 
-a_time = []
-a_trigger = []
-a_count = []
+l_time = [[]]*5 
+l_trigger = [[]]*5 
+l_count = [[]]*5 
+
+a_time = [] 
+a_trigger = [] 
+a_count = [] 
+
+my_hexdata = "40"
+num_of_bits = 8
+scale = 16
+#bin(int(my_hexdata, scale))[2:].zfill(num_of_bits)
 
 lasttime = 0
+
+fw = open("test.txt", "w")
+
 while True:
 
     trigger_time = tb.getClockCycles()
     for i in range(len(trigger_time)):
 
         trigger_time_i = trigger_time[i]
-        #print (trigger_time_i)
         trigger_bits = hex(trigger_time_i)[-2:]
         timestamp = hex(trigger_time_i)[:-2]
-
-        #print (timestamp, trigger_bits)
 
         if timestamp != "0x" and timestamp != '0':
             a_time.append(int(timestamp, base=16)/50.0e6)
@@ -53,20 +68,20 @@ while True:
 
     if len(a_time) > 0:
         if lasttime != a_time[-1]:
-            print (a_time[-1], a_trigger[-1])
+            #print (a_time[-1], a_trigger[-1])
             lasttime = a_time[-1]
+            fw.write("{} {}\n".format(a_time[-1], a_trigger[-1]) )
 
-    #time.sleep(5e-3)
-    #print ('#####')
+            if len(a_time) % 1000 == 0:
+                print ("{}: Acquired {} events already, last fired triggers {}.".format( datetime.datetime.now(),  len(a_time), a_trigger[-1] ))
 
-    if len(a_time) == 1000:
+    if len(a_time) == nEvents:
         break
 
+'''
 x,y = np.array(a_time), np.array(a_count) 
-# The actual curve fitting happens here
 coef = np.polyfit(x,y,1)
 poly1d_fn = np.poly1d(coef)
-# poly1d_fn is now a function which takes in x and returns an estimate for y
 plt.plot(x,y, 'yo', x, poly1d_fn(x), '--k') #'--k'=black dashed line, 'yo' = yellow circle marker
 plt.text(4, 200, "fitted trigger rate: {:.3f} Hz".format(coef[0]))
 
@@ -74,16 +89,5 @@ plt.text(4, 200, "fitted trigger rate: {:.3f} Hz".format(coef[0]))
 #plt.ylim(0, 12)
 plt.xlabel('Time stamp (s)')
 plt.ylabel('Number of events')
-plt.savefig("../plots/test_sim_triggerrate.png")
-
-#out1  = []
-#for i in range(2,10):
-#    tb.setHistogram([i]) 
-#    out1.extend(tb.readHistogram())
-#
-#print (out1)
-#
-#tb.setHistogram([0])
-#out2 = tb.readHistogram()
-#
-#print (out2)
+plt.savefig("../plots/test_sim_triggerrate_prescale0.1.png")
+'''
