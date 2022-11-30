@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import array
 import datetime
 
-nEvents = 1000
+nEvents = 4000000
 
 tb = TriggerBoard()
 
@@ -15,8 +15,8 @@ tb.dead_time = 100
 tb.coincidence_time = 20
 tb.nLayerThreshold = 3 #requirement for firing the gtNHitLayers trigger bit (greater than or equal to)
 tb.nHitThreshold = 3 #requirement for firing the gtNHits trigger bit (greater than)
-tb.prescale = [1.0, 0.01, 1.0, 0.01, 0.01, 0.01, 0.1, 1.0] #fraction of events to pass for each trigger bit
-#tb.prescale = [1.0, 0.0001, 1.0, 0.001, 0.01, 0.01, 0.1, 1.0] #fraction of events to pass for each trigger bit
+#tb.prescale = [1.0, 0.01, 1.0, 0.01, 0.01, 0.01, 0.1, 1.0] #fraction of events to pass for each trigger bit
+tb.prescale = [1.0, 0.001, 1.0, 0.001, 0.01, 0.01, 0.1, 1.0] #fraction of events to pass for each trigger bit
 #tb.prescale = [1.0]*8 #fraction of events to pass for each trigger bit
 
 tb.resetClock()

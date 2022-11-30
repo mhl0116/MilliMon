@@ -160,6 +160,8 @@ void postprocess_digitizer(TString runnum, TString subrunnum, spdlog::logger log
 
     SPDLOG_LOGGER_INFO(&logger, "Start process events with event loop");
     TH2F * h_channel_heatmap = new TH2F("h_channel_heatmap", "", 16, 1, 17, 16, 1, 17);
+    TH1F * h_1channel_waveform = new TH1F("h_1channel_waveform", "", 1024,0,1024);
+    TH1F * h_1channel_waveform_2 = new TH1F("h_1channel_waveform_2", "", 1024,0,1024);
     for(int i = 0; i < nEvents; i++){
         events->GetEntry(i);
         // looper over digitizers and channels <=> loop over bars, need a map
@@ -178,8 +180,16 @@ void postprocess_digitizer(TString runnum, TString subrunnum, spdlog::logger log
     }
 
 
+    events->GetEntry(50);
+    for (int i = 0; i < 1024; i++) {
+        h_1channel_waveform->SetBinContent(i+1, waveform[0][0][i]);
+        h_1channel_waveform_2->SetBinContent(i+1, waveform[1][0][i]);
+    }
+    
     //fout->WriteObject(c, "plot_VMax");
-    //fout->WriteObject(h_channel_heatmap, "channel_heatmap");
+    fout->WriteObject(h_channel_heatmap, "channel_heatmap");
+    fout->WriteObject(h_1channel_waveform, "1channel_waveform");
+    fout->WriteObject(h_1channel_waveform_2, "1channel_waveform_2");
 
     h_channel_heatmap->Draw("COLZ");
     h_channel_heatmap->Draw("TEXT same");
