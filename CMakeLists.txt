@@ -21,18 +21,8 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
 set(spdlog_DIR /home/hmei/.local/lib64/cmake/spdlog/) 
 find_package(spdlog REQUIRED)
 
-# Create a shared library.
-# Passing cmake targets such as `ROOT::RIO` as dependencies (rather than plain
-# library names for example via ${ROOT_LIBRARIES}) ensures that properties such as required
-# include directories and C++ standard are propagated to our libraries or executables.
-# Note: To ensure compatibility with Cling, targets *must* be compiled using the
-# same C++ standard as ROOT was compiled with.
+# The compiled library code is here
+add_subdirectory(src)
 
-#add_library(Event SHARED Event.cxx)
-#target_link_libraries(Event PUBLIC ROOT::RIO ROOT::Net)
-
-# Create the main program using the library.
-add_executable(Main postprocess_digitizer.cpp)
-#target_link_libraries(Main PUBLIC ROOT::Physics ROOT::RIO ROOT::Tree ROOT::Core ROOT::Gpad ROOT::Hist ROOT::Graf) 
-target_link_libraries(Main PUBLIC ROOT::RIO ROOT::Tree ROOT::Gpad)  
-target_link_libraries(Main PRIVATE spdlog::spdlog)
+# The executable code is here
+add_subdirectory(apps)
