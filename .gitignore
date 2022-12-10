@@ -3,4 +3,5 @@ include/spdlog/
 logs/
 tmp/
 plots/
+python/*pyc
 
