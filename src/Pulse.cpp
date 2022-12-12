@@ -40,6 +40,10 @@ void Pulse::Print() {
 
 }
 
+void Pulse::DumpToCSV() {
+
+}
+
     /*
 bool Pulse::IsShortPulse() {
 

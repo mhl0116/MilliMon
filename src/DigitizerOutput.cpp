@@ -32,8 +32,9 @@ std::vector<Pulse> DigitizerOutput::MakePulses(std::vector< std::pair<double,dou
         pulse.SetPulseProperty(height, area, duriation, pulseTime, delay);
         pulse.SetTDC(digitizers_TDC[digitizerID][channelID], digitizers_TDCRollovers[digitizerID][channelID]);
 
+        pulses.push_back(pulse);
         //std::cout << "height: " << height << ", area: " << area << ", duriation: " << duriation << ", pulseTime: " << pulseTime << std::endl;
-        pulse.Print();
+        //pulse.Print();
     }    
 
     return pulses;
@@ -120,7 +121,7 @@ void DigitizerOutput::ProcessWave(int digitizerID, int channelID, TString name) 
     TH1D* wave = GetWaveform(digitizerID, channelID, name);
 
     // get sideband mean/rms
-    std::pair sideband_mean_rms = MeasureSideband(wave);
+    std::pair<double,double> sideband_mean_rms = MeasureSideband(wave);
     //std::cout << "sideband mean: " << sideband_mean_rms.first << ", rms: " << sideband_mean_rms.second << std::endl;
 
     // get actual pulses
@@ -129,11 +130,104 @@ void DigitizerOutput::ProcessWave(int digitizerID, int channelID, TString name) 
     std::vector<Pulse> pulses = MakePulses(pulses_bounds, wave, digitizerID, channelID);
 
     // dump
-    // https://www.geeksforgeeks.org/csv-file-management-using-c/
-    // loop over pulses, dump to file with predefined name, as input to dump function
-    // sideband mean/rms, nPulses, Height_pulse_max/min, Area_pulse_max/min, duration_pulse_max_min, TDC/and rollover, channelID, SupermoduleID, row, col
+    // https://stackoverflow.com/questions/14265581/parse-split-a-string-in-c-using-string-delimiter-standard-c
+    std::string name_s(name.Data());
+    std::string event_id = name_s.substr(0, name_s.find("_")); // token is "scott"
+                                                           
+    if (pulses.size() > 0) {
+        std::cout << "pulse size is: " << pulses.size() << std::endl;
+        DumpToFile(sideband_mean_rms, pulses, event_id);
+    }
 
     // longer term furture, could be nice to save two dataframe, one per channel info (VMax, sideband etc), one per pulse info (height, area, duriation)
+
+}
+
+void DigitizerOutput::SetOutputFile(std::string outputpathbase, std::string runnum, std::string subrunnum) {
+
+    outputfilename =  outputpathbase + "Output_run" + runnum + "_subrun" + subrunnum + ".csv";
+
+    // opens an existing csv file or creates a new file.
+    fout.open(outputfilename, std::ios::out | std::ios::app);
+
+    fout << "event_id, "
+         << "channel, "
+         << "layer, "
+         << "supermodule, "
+         << "row, "
+         << "column, "
+         << "sideband_mean, "
+         << "sideband_rms, "
+         << "nPulses, "
+         << "pulseHeight_max, "
+         << "pulseHeight_min, "
+         << "pulseArea_max, "
+         << "pulseArea_min, "
+         << "pulseDuriation_max, "
+         << "pulseDuriation_min, "
+         << "TDC, "
+         << "TDCRollovers"
+         << "\n";
+
+}
+
+void DigitizerOutput::DumpToFile(std::pair<double,double> sideband_mean_rms, std::vector<Pulse> pulses, TString event_id) {
+
+    // could add options if needed, e.g. dump processed data (max/min), or per pulse, or per event etc
+    
+    double sideband_mean = sideband_mean_rms.first; 
+    double sideband_rms = sideband_mean_rms.second; 
+
+    Pulse first_pulse = pulses[0];
+    int channel = first_pulse.channel;
+    int supermodule = first_pulse.supermodule;
+    int layer = first_pulse.layer;
+    int row = first_pulse.row;
+    int column = first_pulse.column;
+    float TDC = first_pulse.TDC;
+    float TDCRollovers = first_pulse.TDCRollovers;
+
+    sort( pulses.begin( ), pulses.end( ), [ ]( const Pulse& lhs, const Pulse& rhs )
+    {
+       return lhs.height < rhs.height;
+    });
+
+    float pulseHeight_max = pulses.back().height; 
+    float pulseHeight_min = pulses[0].height; 
+
+    sort( pulses.begin( ), pulses.end( ), [ ]( const Pulse& lhs, const Pulse& rhs )
+    {
+       return lhs.area < rhs.area;
+    });
+
+    float pulseArea_max = pulses.back().area; 
+    float pulseArea_min = pulses[0].area; 
+
+    sort( pulses.begin( ), pulses.end( ), [ ]( const Pulse& lhs, const Pulse& rhs )
+    {
+       return lhs.duriation < rhs.duriation;
+    });
+
+    float pulseDuriation_max = pulses.back().duriation; 
+    float pulseDuriation_min = pulses[0].duriation; 
+
+    fout << event_id           << ", "
+         << channel            << ", "
+         << layer              << ", "
+         << supermodule        << ", "
+         << row                << ", "
+         << column             << ", "
+         << sideband_mean      << ", "
+         << sideband_rms       << ", "
+         << pulses.size()      << ", "
+         << pulseHeight_max    << ", "
+         << pulseHeight_min    << ", "
+         << pulseArea_max      << ", "
+         << pulseArea_min      << ", "
+         << pulseDuriation_max << ", "
+         << pulseDuriation_min << ", "
+         << TDC                << ", "
+         << TDCRollovers       << "\n";
 
 }
 
@@ -191,7 +285,7 @@ void DigitizerOutput::Loop()
 
    // TODO check nDigitizers, nChannels, nSamples not exceeding requirement
    //Mappings mappings = Mappings();
-   CheckMappings(mappings);
+   //CheckMappings(mappings);
    
    Long64_t nbytes = 0, nb = 0;
    for (Long64_t jentry=0; jentry<nentries;jentry++) {

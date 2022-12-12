@@ -10,6 +10,9 @@
 
 #include <utility>
 #include <vector>
+#include <algorithm>
+#include <fstream>
+
 #include "milliqan/constants.h"
 #include "milliqan/mappings.h"
 #include "milliqan/Pulse.h"
@@ -89,6 +92,8 @@ public :
    // 2D arrays containing waveforms from all channels
    TH1D* waves[constants::nDigitizers][constants::nChannels];
    Mappings mappings;
+   std::string outputfilename;
+   std::fstream fout;
 
    DigitizerOutput(TTree *tree=0);
    virtual ~DigitizerOutput();
@@ -107,6 +112,9 @@ public :
    std::vector< std::pair<double,double> > FindPulsesBounds(TH1D* wave);
    std::vector<Pulse> MakePulses(std::vector< std::pair<double,double> > pulseBounds, TH1D* wave, int digitizerID, int channelID);
    void CheckMappings(Mappings mappings);
+   void SetOutputFile(std::string outputpathbase, std::string runnum, std::string subrunnum);
+   void DumpToFile(std::pair<double,double> sideband_mean_rms, std::vector<Pulse> pulses, TString event_id);
+
 };
 
 #endif

@@ -28,6 +28,7 @@ public :
     void SetPulseProperty(float ht, float a, float dur, float pulseT, float dly);
     void SetTDC(float TDC, float TDCRollovers);
     void Print();
+    void DumpToCSV();
     bool IsShortPulse();
 
 };
