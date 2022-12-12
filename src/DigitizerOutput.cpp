@@ -119,17 +119,20 @@ void DigitizerOutput::ProcessWave(int digitizerID, int channelID, TString name) 
 
     TH1D* wave = GetWaveform(digitizerID, channelID, name);
 
+    // get sideband mean/rms
     std::pair sideband_mean_rms = MeasureSideband(wave);
     //std::cout << "sideband mean: " << sideband_mean_rms.first << ", rms: " << sideband_mean_rms.second << std::endl;
+
+    // get actual pulses
     std::vector< std::pair<double,double> > pulses_bounds = FindPulsesBounds(wave);
     //std::cout << "number of pulses: " << pulses_bounds.size() << std::endl;
     std::vector<Pulse> pulses = MakePulses(pulses_bounds, wave, digitizerID, channelID);
 
-    // get sideband mean/rms
-    // get actual pulses
+    // dump
+    // https://www.geeksforgeeks.org/csv-file-management-using-c/
+    // loop over pulses, dump to file with predefined name, as input to dump function
     // sideband mean/rms, nPulses, Height_pulse_max/min, Area_pulse_max/min, duration_pulse_max_min, TDC/and rollover, channelID, SupermoduleID, row, col
 
-    // be careful with small pulses (would add dedicated algorithm to kill it)
     // longer term furture, could be nice to save two dataframe, one per channel info (VMax, sideband etc), one per pulse info (height, area, duriation)
 
 }

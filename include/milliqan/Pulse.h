@@ -25,7 +25,7 @@ public :
     Pulse();
     Pulse(Mappings mappings, int digitizerID, int channelID);
     virtual ~Pulse();
-    void SetPulseProperty(float heigit, float area, float duriation, float pulseTime, float delay);
+    void SetPulseProperty(float ht, float a, float dur, float pulseT, float dly);
     void SetTDC(float TDC, float TDCRollovers);
     void Print();
     bool IsShortPulse();
