@@ -8,8 +8,11 @@
 #ifndef DigitizerOutput_h
 #define DigitizerOutput_h
 
+#include <utility>
 #include <vector>
 #include "milliqan/constants.h"
+#include "milliqan/mappings.h"
+#include "milliqan/Pulse.h"
 
 #include <TROOT.h>
 #include <TChain.h>
@@ -85,6 +88,7 @@ public :
 
    // 2D arrays containing waveforms from all channels
    TH1D* waves[constants::nDigitizers][constants::nChannels];
+   Mappings mappings;
 
    DigitizerOutput(TTree *tree=0);
    virtual ~DigitizerOutput();
@@ -95,7 +99,14 @@ public :
    virtual void     Loop();
    virtual Bool_t   Notify();
    virtual void     Show(Long64_t entry = -1);
+
    TH1D * GetWaveform(const unsigned int digitizerID, const unsigned int channelID, const TString name) const;
+   void ProcessWaves(int ientry, TH1D* waves[][constants::nChannels]);
+   void ProcessWave(int digitizerID, int channelID, TString name);
+   std::pair<double,double> MeasureSideband(TH1D* wave);
+   std::vector< std::pair<double,double> > FindPulsesBounds(TH1D* wave);
+   std::vector<Pulse> MakePulses(std::vector< std::pair<double,double> > pulseBounds, TH1D* wave, int digitizerID, int channelID);
+   void CheckMappings(Mappings mappings);
 };
 
 #endif
@@ -114,6 +125,7 @@ DigitizerOutput::DigitizerOutput(TTree *tree) : fChain(0)
 
    }
    Init(tree);
+   mappings = Mappings();
 }
 
 DigitizerOutput::~DigitizerOutput()

@@ -33,6 +33,7 @@ TTree* GetTree(std::string filename, std::string treename) {
 
 void postprocess_digitizer(std::string runnum, std::string subrunnum) {
 
+    //TODO put location of file and pattern of filename into some global constant or function
     std::string filename = "/home/milliqan/data/MilliQan_Run" + runnum + "." + subrunnum + "_default.root";
     TTree* tree = GetTree(filename, "Events");
     DigitizerOutput digitizerOutput = DigitizerOutput(tree);

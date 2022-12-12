@@ -23,6 +23,8 @@ int main(int argc, char **argv) {
         postprocess_digitizer(runnum, subrunnum);
         postprocess_triggerboard(runnum, subrunnum);
 
+        // TODO, could also add an alternative to read a Chained TChain
+
     }
 
     return 0;

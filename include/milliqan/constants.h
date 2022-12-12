@@ -1,6 +1,7 @@
 #ifndef CONSTANTS_H
 #define CONSTANTS_H
 
+#include <utility>
 // define your own namespace to hold constants
 namespace constants
 {
@@ -28,7 +29,12 @@ namespace constants
     inline constexpr int nSamples {1024}; 
     inline constexpr int SAMFrequency {3};  
     inline constexpr double nanosecondsPerSample {(1.0 / 3.2) * (1 << SAMFrequency)}; 
-    
+
+    inline constexpr std::pair sideband_range {std::make_pair(0,50)};  
+    inline constexpr int nConsecSamples {3};  
+    inline constexpr int nConsecSamplesEnd {3};  
+    inline constexpr int lowThresh {1};  
+    inline constexpr int highThresh {10};  
     // ... other related constants
 }
 #endif

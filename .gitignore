@@ -5,3 +5,11 @@ tmp/
 plots/
 python/*pyc
 
+
+CMakeLists.txt.backup
+outputs/
+postprocess_digitizer.cpp
+python/__pycache__/
+python/test.txt
+python/test_long.txt
+

@@ -1,4 +1,4 @@
-add_library(milliqan_library lib.cpp DigitizerOutput.cpp)
+add_library(milliqan_library lib.cpp DigitizerOutput.cpp mappings.cpp Pulse.cpp)
 
 # We need this directory, and users of our library will need it too
 target_include_directories(milliqan_library PUBLIC ../include)
