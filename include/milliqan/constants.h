@@ -36,5 +36,8 @@ namespace constants
     inline constexpr int lowThresh {1};  
     inline constexpr int highThresh {10};  
     // ... other related constants
+    inline constexpr int nTriggerBits {8};  
+    inline constexpr double secondsPerCycle {20.0/1e9}; 
+
 }
 #endif

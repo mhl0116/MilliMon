@@ -132,10 +132,9 @@ void DigitizerOutput::ProcessWave(int digitizerID, int channelID, TString name) 
     // dump
     // https://stackoverflow.com/questions/14265581/parse-split-a-string-in-c-using-string-delimiter-standard-c
     std::string name_s(name.Data());
-    std::string event_id = name_s.substr(0, name_s.find("_")); // token is "scott"
+    std::string event_id = name_s.substr(0, name_s.find("_digi_")); // token is "scott"
                                                            
     if (pulses.size() > 0) {
-        std::cout << "pulse size is: " << pulses.size() << std::endl;
         DumpToFile(sideband_mean_rms, pulses, event_id);
     }
 
@@ -145,7 +144,7 @@ void DigitizerOutput::ProcessWave(int digitizerID, int channelID, TString name) 
 
 void DigitizerOutput::SetOutputFile(std::string outputpathbase, std::string runnum, std::string subrunnum) {
 
-    outputfilename =  outputpathbase + "Output_run" + runnum + "_subrun" + subrunnum + ".csv";
+    outputfilename =  outputpathbase + "Digitizer_run" + runnum + "_subrun" + subrunnum + ".csv";
 
     // opens an existing csv file or creates a new file.
     fout.open(outputfilename, std::ios::out | std::ios::app);
@@ -243,7 +242,8 @@ TH1D * DigitizerOutput::GetWaveform(const unsigned int digitizerID, const unsign
     return wave;
 }
 
-void DigitizerOutput::ProcessWaves(int ientry, TH1D* waves[][constants::nChannels]) {
+//void DigitizerOutput::ProcessWaves(int ientry, TH1D* waves[][constants::nChannels]) {
+void DigitizerOutput::ProcessWaves(int ientry) {
 
       for (int digitizerID = 0; digitizerID < constants::nDigitizers; digitizerID++) {
           for (int channelID = 0; channelID < constants::nChannels; channelID++) {
@@ -294,15 +294,8 @@ void DigitizerOutput::Loop()
       nb = fChain->GetEntry(jentry);   nbytes += nb;
 
       // for each event, save waveform for each channel (5 digitizers X 16 channels) into histograms (TH1D)
-      ProcessWaves(ientry, waves);
-
-      /*
-         VMax, average/max/min(nPE, pulse height, pulse width, area) vs time
-         pedestal mean and rms
-         number of pulses per layer / supermodule / channel / detector ?
-         event display when there is bit 1 or 2 fired
-         matching situation
-      */
+      //ProcessWaves(ientry, waves);
+      ProcessWaves(ientry);
 
       // if (Cut(ientry) < 0) continue;
 

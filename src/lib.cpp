@@ -45,4 +45,11 @@ void postprocess_digitizer(std::string runnum, std::string subrunnum) {
 
 void postprocess_triggerboard(std::string runnum, std::string subrunnum) {
 
+    std::string filename = "/home/milliqan/data/TriggerBoard_Run" + runnum + "." + subrunnum + ".root";
+    std::string outputpathbase = "/home/hmei/MilliAna/data/";
+    TTree* tree = GetTree(filename, "Events");
+    TriggerBoardOutput triggerBoardOutput = TriggerBoardOutput(tree);
+    triggerBoardOutput.SetOutputFile(outputpathbase, runnum, subrunnum);
+    triggerBoardOutput.Loop();
+
 }

@@ -3,6 +3,7 @@
 #include <string>
 
 #include <milliqan/DigitizerOutput.h>
+#include <milliqan/TriggerBoardOutput.h>
 #include "TFile.h"
 #include "TTree.h"
 

@@ -107,6 +107,7 @@ public :
 
    TH1D * GetWaveform(const unsigned int digitizerID, const unsigned int channelID, const TString name) const;
    void ProcessWaves(int ientry, TH1D* waves[][constants::nChannels]);
+   void ProcessWaves(int ientry);
    void ProcessWave(int digitizerID, int channelID, TString name);
    std::pair<double,double> MeasureSideband(TH1D* wave);
    std::vector< std::pair<double,double> > FindPulsesBounds(TH1D* wave);
