@@ -9,6 +9,8 @@
     + influxDB
     + grafana
     + telegraf
+- python related
+    + conda and pandas
 
 ## Basic structure
 

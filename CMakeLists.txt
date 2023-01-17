@@ -8,11 +8,13 @@ set(CMAKE_CXX_STANDARD
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_PLATFORM_INDEPENDENT_CODE ON)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # Locate the ROOT package and define a number of useful targets and variables.
 find_package(ROOT 6.26 CONFIG REQUIRED)
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include/spdlog/include)
 
 #git clone https://github.com/gabime/spdlog.git
 #cd spdlog && mkdir build && cd build
@@ -23,6 +25,7 @@ find_package(spdlog REQUIRED)
 
 # The compiled library code is here
 add_subdirectory(src)
+#add_subdirectory(include/spdlog)
 
 # The executable code is here
 add_subdirectory(apps)
