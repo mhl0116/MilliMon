@@ -30,7 +30,7 @@ int Mappings::SetChannelID(int digitizerID, int channelID) {
 
 int Mappings::SetSupermoduleID(int channelID) {
 
-    return int((channelID%16)/4) + 1;
+    return int((channelID%16)/4);
 
 }
 

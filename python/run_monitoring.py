@@ -23,7 +23,7 @@ logger.addHandler(stream_handler)
 def DumpToDB(info_to_dump):
 
     # send to db
-    print('Sending data to influxDB...')
+    logger.info(f"Sending data to influxDB...")
     try:
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         sock.sendto(
@@ -58,6 +58,7 @@ class MilliMon():
         if tag == "TRGB":
             self.prefix = MilliMon.triggerboard_file_prefix 
             logger.info(f"Start monitoring process for triggerboard outputs")
+        self.info_to_dump = {'metric_name': 'milliqan_online_monitoring'}
 
     def GetRunNumber(self):
 
@@ -73,6 +74,11 @@ class MilliMon():
     
         logger.info(f"Run number: {runnum_decoded}, subrun number: {subrunnum_decoded}")
         return runnum_decoded, subrunnum_decoded
+
+    def SetLastRunNumbers(self, runnum, subrunnum):
+        logger.info(f"Set last runnum: {runnum}, subrunnum: {subrunnum}")
+        self.lastRunNum = runnum
+        self.lastSubrunNum = subrunnum
 
     def RootFileChecker(self):
         '''
@@ -115,50 +121,76 @@ class MilliMon():
             self.GatherTRGBData()
 
     def GatherDGTZData(self):
-        pass
 
-        info_to_dump = {}
         # get DF
         # TODO set a project root path in the beginning
+        # TODO how to solve one file is written more than once
         fname = f"../data/Digitizer_run{self.lastRunNum}_subrun{self.lastSubrunNum}.csv"
         df = pd.read_csv(fname)
 
+        logger.info(f"Start to proecss digitizer data: {fname}")
+
         for i in range(MilliMon.nLayers):
-            info_to_dump[f"sb_mean_max_layer_{i}"] =  df[df.xxx == xxx].sb_mean.max
-            info_to_dump[f"sb_rms_max_layer_{i}"] = 
-            info_to_dump[f"nPulse_max_layer_{i}"] = 
-            info_to_dump[f"pulse_height_max_layer_{i}"] = 
-            info_to_dump[f"pulse_area_max_layer_{i}"] = 
-            info_to_dump[f"pulse_duriation_max_layer_{i}"] = 
-            info_to_dump[f"sb_mean_min_layer_{i}"] = 
-            info_to_dump[f"sb_rms_min_layer_{i}"] = 
-            info_to_dump[f"nPulse_min_layer_{i}"] = 
-            info_to_dump[f"pulse_height_min_layer_{i}"] = 
-            info_to_dump[f"pulse_area_min_layer_{i}"] = 
-            info_to_dump[f"pulse_duriation_min_layer_{i}"] = 
+
+            df_layer = df[df.layer == i]
+
+            logger.info(f"Start to proecss layer {i}")
+            self.info_to_dump[f"sb_mean_layer_{i}"] =  df_layer.sideband_mean.mean()
+            self.info_to_dump[f"sb_rms_layer_{i}"] = df_layer.sideband_rms.mean()
+            self.info_to_dump[f"nPulse_layer_{i}"] = df_layer.nPulses.mean() 
+            self.info_to_dump[f"pulse_height_max_layer_{i}"] = df_layer.pulseHeight_max.mean()
+            self.info_to_dump[f"pulse_area_max_layer_{i}"] = df_layer.pulseArea_max.mean()
+            self.info_to_dump[f"pulse_duriation_max_layer_{i}"] = df_layer.pulseDuriation_max.mean()
+            self.info_to_dump[f"pulse_height_min_layer_{i}"] = df_layer.pulseHeight_min.mean()
+            self.info_to_dump[f"pulse_area_min_layer_{i}"] = df_layer.pulseArea_min.mean()
+            self.info_to_dump[f"pulse_duriation_min_layer_{i}"] = df_layer.pulseDuriation_min.mean()
 
             ## Use a new script or function to make plot from subRun i to i+N every 1 hour
+            ## consider write down run subrun number every 1 hour, then use this to make plot
+            #DumpPlots()
 
         for i in range(MilliMon.nSuperModules):
-            self.ProcessBla()
 
-        # Plot 1-4, sideband_mean, sideband_rms for layer 1-4
-        # Plot 5-8, pulse height max and min for layer 1-4
-        # Plot 9-12, pulse area max and min for layer 1-4
-        # Plot 13-16, pulse duriation max and min for layer 1-4
-        # Plot 17-20, nPulse for layer 1-4
-        # Then double the plot by 2 for supermodule 1-4
+            df_supermodule = df[df.supermodule == i]
 
-        # For now, 40 plots, each plot has 8 curves
-        # For now, will have a python dictionary with 320 keys
+            if len(df_supermodule) == 0: continue
+            logger.info(f"Start to proecss supermodule {i}")
 
-        DumpToDB(info_to_dump)
-        #DumpPlots()
+            self.info_to_dump[f"sb_mean_supermodule_{i}"] =  df_supermodule.sideband_mean.mean()
+            self.info_to_dump[f"sb_rms_supermodule_{i}"] = df_supermodule.sideband_rms.mean()
+            self.info_to_dump[f"nPulse_supermodule_{i}"] = df_supermodule.nPulses.mean() 
+            self.info_to_dump[f"pulse_height_max_supermodule_{i}"] = df_supermodule.pulseHeight_max.mean()
+            self.info_to_dump[f"pulse_area_max_supermodule_{i}"] = df_supermodule.pulseArea_max.mean()
+            self.info_to_dump[f"pulse_duriation_max_supermodule_{i}"] = df_supermodule.pulseDuriation_max.mean()
+            self.info_to_dump[f"pulse_height_min_supermodule_{i}"] = df_supermodule.pulseHeight_min.mean()
+            self.info_to_dump[f"pulse_area_min_supermodule_{i}"] = df_supermodule.pulseArea_min.mean()
+            self.info_to_dump[f"pulse_duriation_min_supermodule_{i}"] = df_supermodule.pulseDuriation_min.mean()
+
+        DumpToDB(self.info_to_dump)
 
     def GatherTRGBData(self):
         pass
 
-mon = MilliMon("DGTZ")
-mon.RootFileChecker()
-mon.RunCppAnalyer()
-mon.DataGather()
+
+doCheck = True
+testRunNumber = 591
+testSubrunNumber = 1
+testStop = 100
+time_interval = 5
+
+if doCheck:
+    mon = MilliMon("DGTZ")
+    while (testSubrunNumber < testStop):
+        mon.SetLastRunNumbers(testRunNumber, testSubrunNumber)
+        #TODO if file exists, no need to run cpp analyzer
+        mon.RunCppAnalyer()
+        mon.DataGather()
+        testSubrunNumber += 1
+        time.sleep(time_interval)
+else:
+    mon = MilliMon("DGTZ")
+    while (True):
+        # when adding trigger board info, it's a good place to try asyncIO to prevent blocking
+        mon.RootFileChecker()
+        mon.RunCppAnalyer()
+        mon.DataGather()

@@ -122,7 +122,6 @@ void DigitizerOutput::ProcessWave(int digitizerID, int channelID, TString name) 
 
     // get sideband mean/rms
     std::pair<double,double> sideband_mean_rms = MeasureSideband(wave);
-    //std::cout << "sideband mean: " << sideband_mean_rms.first << ", rms: " << sideband_mean_rms.second << std::endl;
 
     // get actual pulses
     std::vector< std::pair<double,double> > pulses_bounds = FindPulsesBounds(wave);
@@ -135,6 +134,7 @@ void DigitizerOutput::ProcessWave(int digitizerID, int channelID, TString name) 
     std::string event_id = name_s.substr(0, name_s.find("_digi_")); // token is "scott"
                                                            
     if (pulses.size() > 0) {
+        //std::cout << "sideband mean: " << sideband_mean_rms.first << ", rms: " << sideband_mean_rms.second << std::endl;
         DumpToFile(sideband_mean_rms, pulses, event_id);
     }
 
@@ -149,22 +149,22 @@ void DigitizerOutput::SetOutputFile(std::string outputpathbase, std::string runn
     // opens an existing csv file or creates a new file.
     fout.open(outputfilename, std::ios::out | std::ios::app);
 
-    fout << "event_id, "
-         << "channel, "
-         << "layer, "
-         << "supermodule, "
-         << "row, "
-         << "column, "
-         << "sideband_mean, "
-         << "sideband_rms, "
-         << "nPulses, "
-         << "pulseHeight_max, "
-         << "pulseHeight_min, "
-         << "pulseArea_max, "
-         << "pulseArea_min, "
-         << "pulseDuriation_max, "
-         << "pulseDuriation_min, "
-         << "TDC, "
+    fout << "event_id,"
+         << "channel,"
+         << "layer,"
+         << "supermodule,"
+         << "row,"
+         << "column,"
+         << "sideband_mean,"
+         << "sideband_rms,"
+         << "nPulses,"
+         << "pulseHeight_max,"
+         << "pulseHeight_min,"
+         << "pulseArea_max,"
+         << "pulseArea_min,"
+         << "pulseDuriation_max,"
+         << "pulseDuriation_min,"
+         << "TDC,"
          << "TDCRollovers"
          << "\n";
 
@@ -210,22 +210,22 @@ void DigitizerOutput::DumpToFile(std::pair<double,double> sideband_mean_rms, std
     float pulseDuriation_max = pulses.back().duriation; 
     float pulseDuriation_min = pulses[0].duriation; 
 
-    fout << event_id           << ", "
-         << channel            << ", "
-         << layer              << ", "
-         << supermodule        << ", "
-         << row                << ", "
-         << column             << ", "
-         << sideband_mean      << ", "
-         << sideband_rms       << ", "
-         << pulses.size()      << ", "
-         << pulseHeight_max    << ", "
-         << pulseHeight_min    << ", "
-         << pulseArea_max      << ", "
-         << pulseArea_min      << ", "
-         << pulseDuriation_max << ", "
-         << pulseDuriation_min << ", "
-         << TDC                << ", "
+    fout << event_id           << ","
+         << channel            << ","
+         << layer              << ","
+         << supermodule        << ","
+         << row                << ","
+         << column             << ","
+         << sideband_mean      << ","
+         << sideband_rms       << ","
+         << pulses.size()      << ","
+         << pulseHeight_max    << ","
+         << pulseHeight_min    << ","
+         << pulseArea_max      << ","
+         << pulseArea_min      << ","
+         << pulseDuriation_max << ","
+         << pulseDuriation_min << ","
+         << TDC                << ","
          << TDCRollovers       << "\n";
 
 }
